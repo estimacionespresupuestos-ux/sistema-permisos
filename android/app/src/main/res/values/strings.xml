@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Permisos RH</string>
+    <string name="title_activity_main">Permisos RH</string>
+    <string name="package_name">com.mobiliarium.permisos</string>
+    <string name="custom_url_scheme">com.mobiliarium.permisos</string>
+</resources>

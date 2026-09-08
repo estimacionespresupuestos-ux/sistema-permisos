@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "270867330115",
+    "project_id": "permisos-rh",
+    "storage_bucket": "permisos-rh.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:270867330115:android:d502430f9e851d16bc50f6",
+        "android_client_info": {
+          "package_name": "com.mobiliarium.permisos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZedWaIx8MdlpRiZ7ZjzoeVNIZurJbzlk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

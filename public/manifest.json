@@ -1,0 +1,29 @@
+{
+  "short_name": "Permisos",
+  "name": "Mobiliarium Permisos",
+  "icons": [
+    {
+      "src": "/LogoNegro.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/LogoNegro.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/badge.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "monochrome"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "display": "standalone",
+  "orientation": "portrait"
+}
