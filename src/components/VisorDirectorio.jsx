@@ -16,6 +16,9 @@ export default function VisorDirectorio({
   const [datosEdit, setDatosEdit] = useState({});
   const [deptosAbiertos, setDeptosAbiertos] = useState({});
 
+  // ESTADO PARA VISOR DE FOTO AGRANDADA AL TOCAR CUALQUIER FOTO
+  const [fotoZoom, setFotoZoom] = useState(null);
+
   if (!usuarios || usuarios.length === 0) {
     return <div style={{ textAlign: 'center', padding: '40px', color: '#64748b', fontWeight: '500' }}>No se encontraron colaboradores.</div>;
   }
@@ -133,7 +136,6 @@ export default function VisorDirectorio({
   return (
     <div style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
       <style>{`
-        /* TABS RESPONSIVAS CON SCROLL SUAVE */
         .tabs-bar {
           display: flex;
           gap: 8px;
@@ -163,7 +165,6 @@ export default function VisorDirectorio({
           box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
 
-        /* ACORDEÓN ÁRBOL */
         .depto-bar {
           padding: 12px 14px;
           background: #fff;
@@ -206,7 +207,6 @@ export default function VisorDirectorio({
           word-break: break-word;
         }
 
-        /* FILTROS DATAGRID */
         .grid-filters {
           display: flex;
           gap: 8px;
@@ -271,7 +271,6 @@ export default function VisorDirectorio({
           background: #fff;
         }
 
-        /* TRANSFORMACIÓN LIMPIA A TARJETAS EN CELULARES */
         @media (max-width: 768px) {
           .responsive-table thead { display: none; }
           
@@ -324,7 +323,7 @@ export default function VisorDirectorio({
         }
       `}</style>
 
-      {/* CLASIFICACIÓN TIPO DE PERSONAL */}
+      {/* TABS TIPO DE PERSONAL */}
       <div className="tabs-bar">
         {['TODOS', 'PRODUCCION', 'ADMINISTRATIVO', 'OBRA'].map(tipo => (
           <button 
@@ -368,14 +367,21 @@ export default function VisorDirectorio({
                         <div className="cards-grid">
                           {arbol[depto][area].map(user => {
                             const badge = badgeColors[user.rol] || badgeColors.empleado;
+                            const urlFoto = user.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nombre_completo)}&background=f1f5f9&color=000`;
+                            
                             return (
                               <div key={user.id} className="user-card" style={{ opacity: user.activo ? 1 : 0.5 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                  
+                                  {/* FOTO CLICKABLE PARA AGRANDAR */}
                                   <img 
-                                    src={user.foto_url || `https://ui-avatars.com/api/?name=${user.nombre_completo}&background=f1f5f9&color=000`} 
+                                    src={urlFoto} 
                                     alt="Foto" 
-                                    style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                                    onClick={() => setFotoZoom({ url: urlFoto, nombre: user.nombre_completo, puesto: user.puesto })}
+                                    title="Toca para ver foto grande"
+                                    style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0, cursor: 'pointer', border: '2px solid #cbd5e1' }}
                                   />
+
                                   <div style={{ display: 'flex', gap: '4px' }}>
                                     <button onClick={() => onRestablecerPin(user.id, user.nombre_completo)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer' }}><Key size={13} color="#64748b"/></button>
                                     <button onClick={() => onToggleEstado(user.id, user.activo)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer' }}>
@@ -411,7 +417,7 @@ export default function VisorDirectorio({
           })}
         </div>
       ) : (
-        /* DATAGRID / TABLA RESPONSIVA */
+        /* DATAGRID */
         <div>
           <div className="grid-filters">
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800', color: '#475569', fontSize: '11px' }}><Filter size={14} /> FILTROS:</div>
@@ -448,6 +454,7 @@ export default function VisorDirectorio({
                 {usuariosFiltradosTabla.map(user => {
                   const enEdicion = editandoId === user.id;
                   const badge = badgeColors[user.rol] || badgeColors.empleado;
+                  const urlFoto = user.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nombre_completo)}&background=f1f5f9&color=000`;
 
                   return (
                     <tr key={user.id} style={{ opacity: user.activo ? 1 : 0.6 }}>
@@ -456,8 +463,19 @@ export default function VisorDirectorio({
                       </td>
 
                       <td data-label="Colaborador">
-                        <div style={{ fontWeight: '800', color: '#1e293b' }}>{user.nombre_completo}</div>
-                        <div style={{ fontSize: '10px', color: 'var(--color-tema, #0f172a)', fontWeight: '800' }}>@{user.usuario_login}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <img 
+                            src={urlFoto} 
+                            alt="Foto" 
+                            onClick={() => setFotoZoom({ url: urlFoto, nombre: user.nombre_completo, puesto: user.puesto })}
+                            title="Toca para ver foto grande"
+                            style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', cursor: 'pointer', border: '1px solid #cbd5e1' }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: '800', color: '#1e293b' }}>{user.nombre_completo}</div>
+                            <div style={{ fontSize: '10px', color: 'var(--color-tema, #0f172a)', fontWeight: '800' }}>@{user.usuario_login}</div>
+                          </div>
+                        </div>
                       </td>
 
                       <td data-label="Departamento">
@@ -540,6 +558,56 @@ export default function VisorDirectorio({
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* VISOR LIGHTBOX GENERAL PARA TODAS LAS FOTOS DEL DIRECTORIO */}
+      {fotoZoom && (
+        <div 
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex', flexDirection: 'column',
+            justifyContent: 'center', alignItems: 'center',
+            zIndex: 3500, padding: '20px'
+          }}
+          onClick={() => setFotoZoom(null)}
+        >
+          <div 
+            style={{ position: 'relative', textAlign: 'center', maxWidth: '90%', maxHeight: '85vh' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <button 
+              onClick={() => setFotoZoom(null)}
+              style={{
+                position: 'absolute', top: '-45px', right: '0',
+                background: 'rgba(255,255,255,0.2)', border: 'none',
+                color: '#fff', fontSize: '20px', borderRadius: '50%',
+                width: '38px', height: '38px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}
+            >
+              ✕
+            </button>
+            <img 
+              src={fotoZoom.url} 
+              alt="Foto ampliada" 
+              style={{
+                maxWidth: '100%', maxHeight: '70vh',
+                borderRadius: '16px', objectFit: 'contain',
+                boxShadow: '0 10px 35px rgba(0,0,0,0.8)',
+                border: '2px solid rgba(255,255,255,0.2)'
+              }} 
+            />
+            <div style={{ color: '#fff', marginTop: '12px' }}>
+              <div style={{ fontSize: '16px', fontWeight: '900' }}>{fotoZoom.nombre}</div>
+              {fotoZoom.puesto && <div style={{ fontSize: '12px', color: '#cbd5e1' }}>{fotoZoom.puesto}</div>}
+            </div>
+            <p style={{ color: '#94a3b8', marginTop: '10px', fontSize: '11px', letterSpacing: '1px' }}>
+              TOCA EN CUALQUIER PARTE PARA CERRAR
+            </p>
           </div>
         </div>
       )}

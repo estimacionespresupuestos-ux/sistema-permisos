@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { supabase } from '../services/supabaseClient';
 import imageCompression from 'browser-image-compression';
-import { X, Camera } from 'lucide-react';
+import { X, Camera, Image, Eye } from 'lucide-react';
 
 const estandarizar = (txt) => txt.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
@@ -15,12 +15,17 @@ export default function ModalColaborador({ onClose, onSuccess, departamentos, ar
   const [fotoArchivo, setFotoArchivo] = useState(null);
   const [fotoPreview, setFotoPreview] = useState(null);
   const [guardando, setGuardando] = useState(false);
-  const [fotoAmpliada, setFotoAmpliada] = useState(false); // Estado para visor de foto
+
+  // Estados de modales para fotos
+  const [mostrarSelectorFoto, setMostrarSelectorFoto] = useState(false);
+  const [fotoAmpliada, setFotoAmpliada] = useState(false);
+
+  // Referencias a los dos inputs independientes
+  const camaraInputRef = useRef(null);
+  const galeriaInputRef = useRef(null);
 
   const [creandoNuevo, setCreandoNuevo] = useState({ depto: false, area: false, puesto: false });
   const [textosNuevos, setTextosNuevos] = useState({ depto: '', area: '', puesto: '' });
-
-  const fileInputRef = useRef(null); // Referencia para activar cámara/galería
 
   const handleNombreChange = (e) => {
     const nombre = e.target.value.toUpperCase();
@@ -42,8 +47,11 @@ export default function ModalColaborador({ onClose, onSuccess, departamentos, ar
         const comp = await imageCompression(archivo, { maxSizeMB: 0.2, maxWidthOrHeight: 800, useWebWorker: true });
         setFotoArchivo(comp);
         setFotoPreview(URL.createObjectURL(comp));
-      } catch (err) { setFotoArchivo(archivo); }
+      } catch (err) { 
+        setFotoArchivo(archivo); 
+      }
     }
+    setMostrarSelectorFoto(false);
   };
 
   const handleGuardar = async (e) => {
@@ -241,7 +249,41 @@ export default function ModalColaborador({ onClose, onSuccess, departamentos, ar
           cursor: pointer;
           margin-top: 10px;
         }
+
+        /* ESTILOS DEL SELECTOR Y LIGHTBOX */
+        .selector-btn {
+          width: 100%;
+          padding: 14px;
+          border: none;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 800;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          cursor: pointer;
+        }
       `}</style>
+
+      {/* INPUT 1: EXCLUSIVO CÁMARA */}
+      <input 
+        ref={camaraInputRef} 
+        type="file" 
+        accept="image/*" 
+        capture="environment" 
+        onChange={handleSeleccionarFoto} 
+        style={{ display: 'none' }} 
+      />
+
+      {/* INPUT 2: EXCLUSIVO GALERÍA (SIN CAPTURE) */}
+      <input 
+        ref={galeriaInputRef} 
+        type="file" 
+        accept="image/*" 
+        onChange={handleSeleccionarFoto} 
+        style={{ display: 'none' }} 
+      />
 
       <div className="modal-overlay">
         <div className="modal-card">
@@ -256,51 +298,29 @@ export default function ModalColaborador({ onClose, onSuccess, departamentos, ar
             <div className="seccion-card">
               <span className="seccion-tag">1. Identidad y Contacto</span>
               
-              {/* ÁREA FOTO RESPONSIVA CON CÁMARA Y VISOR */}
+              {/* ÁREA FOTO CON DISPARADOR DE OPCIONES */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', margin: '5px 0 10px 0' }}>
-                <div style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', border: '3px solid #cbd5e1', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                <div 
+                  onClick={() => setMostrarSelectorFoto(true)}
+                  style={{ position: 'relative', width: '105px', height: '105px', borderRadius: '50%', overflow: 'hidden', border: '3px solid #cbd5e1', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer' }}
+                >
                   <img 
                     src={fotoPreview || `https://ui-avatars.com/api/?name=${formData.nombre_completo || 'N'}&background=f1f5f9`} 
                     alt="Foto Colaborador" 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }}
-                    onClick={() => fotoPreview && setFotoAmpliada(true)}
-                    title="Clic para ampliar"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
-                  <div 
-                    onClick={() => fileInputRef.current?.click()}
-                    style={{ position: 'absolute', bottom: 0, width: '100%', height: '35%', background: 'rgba(0,0,0,0.65)', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
-                  >
-                    <Camera size={18} color="#fff" />
+                  <div style={{ position: 'absolute', bottom: 0, width: '100%', height: '35%', background: 'rgba(0,0,0,0.65)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <Camera size={20} color="#fff" />
                   </div>
                 </div>
 
-                <input 
-                  ref={fileInputRef}
-                  type="file" 
-                  accept="image/*" 
-                  capture="environment" // Abre la cámara directo en celular
-                  onChange={handleSeleccionarFoto} 
-                  hidden 
-                />
-
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button 
-                    type="button" 
-                    onClick={() => fileInputRef.current?.click()} 
-                    style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '6px 12px', fontSize: '11px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', color: '#334155' }}
-                  >
-                    <Camera size={14} /> TOMAR / SUBIR FOTO
-                  </button>
-                  {fotoPreview && (
-                    <button 
-                      type="button" 
-                      onClick={() => setFotoAmpliada(true)} 
-                      style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '6px 12px', fontSize: '11px', fontWeight: '800', cursor: 'pointer', color: '#334155' }}
-                    >
-                      🔍 VER GRANDE
-                    </button>
-                  )}
-                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setMostrarSelectorFoto(true)} 
+                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px 16px', fontSize: '12px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', color: '#334155' }}
+                >
+                  <Camera size={15} /> OPCIONES DE FOTO
+                </button>
               </div>
 
               <div className="form-grid form-grid-2">
@@ -438,28 +458,99 @@ export default function ModalColaborador({ onClose, onSuccess, departamentos, ar
         </div>
       </div>
 
-      {/* MODAL / VISOR LIGHTBOX PARA AMPLIAR FOTO */}
+      {/* MINI-MODAL ACCIÓN DE FOTO */}
+      {mostrarSelectorFoto && (
+        <div 
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex', justifyContent: 'center', alignItems: 'center',
+            zIndex: 2000, padding: '20px'
+          }}
+          onClick={() => setMostrarSelectorFoto(false)}
+        >
+          <div 
+            style={{
+              background: '#fff', width: '100%', maxWidth: '340px',
+              borderRadius: '16px', padding: '20px', display: 'flex',
+              flexDirection: 'column', gap: '10px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', fontWeight: '900', color: '#1e293b', textAlign: 'center' }}>
+              FOTO DE PERFIL
+            </h3>
+
+            <button 
+              type="button"
+              className="selector-btn"
+              style={{ background: '#0f172a', color: '#fff' }}
+              onClick={() => {
+                setMostrarSelectorFoto(false);
+                camaraInputRef.current?.click();
+              }}
+            >
+              <Camera size={18} /> Tomar Foto (Cámara)
+            </button>
+
+            <button 
+              type="button"
+              className="selector-btn"
+              style={{ background: '#3b82f6', color: '#fff' }}
+              onClick={() => {
+                setMostrarSelectorFoto(false);
+                galeriaInputRef.current?.click();
+              }}
+            >
+              <Image size={18} /> Subir de la Galería
+            </button>
+
+            {fotoPreview && (
+              <button 
+                type="button"
+                className="selector-btn"
+                style={{ background: '#f1f5f9', color: '#334155' }}
+                onClick={() => {
+                  setMostrarSelectorFoto(false);
+                  setFotoAmpliada(true);
+                }}
+              >
+                <Eye size={18} /> Ver Foto Grande
+              </button>
+            )}
+
+            <button 
+              type="button"
+              className="selector-btn"
+              style={{ background: '#fee2e2', color: '#dc2626', marginTop: '5px' }}
+              onClick={() => setMostrarSelectorFoto(false)}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* VISOR LIGHTBOX PARA VER FOTO GRANDE EN EL MODAL */}
       {fotoAmpliada && fotoPreview && (
         <div 
           style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.88)',
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
             display: 'flex', flexDirection: 'column',
             justifyContent: 'center', alignItems: 'center',
-            zIndex: 2000, padding: '20px'
+            zIndex: 3000, padding: '20px'
           }}
           onClick={() => setFotoAmpliada(false)}
         >
-          <div style={{ textAlign: 'center', maxWidth: '90%', maxHeight: '80vh' }}>
-            <img 
-              src={fotoPreview} 
-              alt="Foto Ampliada" 
-              style={{ maxWidth: '100%', maxHeight: '70vh', borderRadius: '16px', objectFit: 'contain', boxShadow: '0 10px 30px rgba(0,0,0,0.6)' }} 
-            />
-            <p style={{ color: '#fff', marginTop: '15px', fontSize: '12px', fontWeight: 'bold', letterSpacing: '1px' }}>
-              TOCA EN CUALQUIER PARTE PARA CERRAR
-            </p>
-          </div>
+          <img 
+            src={fotoPreview} 
+            alt="Foto ampliada" 
+            style={{ maxWidth: '90%', maxHeight: '75vh', borderRadius: '16px', objectFit: 'contain', boxShadow: '0 10px 30px rgba(0,0,0,0.8)' }} 
+          />
+          <p style={{ color: '#fff', marginTop: '15px', fontSize: '12px', fontWeight: 'bold', letterSpacing: '1px' }}>
+            TOCA EN CUALQUIER PARTE PARA CERRAR
+          </p>
         </div>
       )}
     </>
