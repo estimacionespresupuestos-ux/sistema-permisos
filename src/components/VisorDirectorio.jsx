@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { supabase } from '../services/supabaseClient';
-import { Briefcase, Key, UserCheck, UserX, MapPin, Edit3, Save, X, Filter, ChevronDown, ChevronRight, Phone, Mail } from 'lucide-react';
+import { 
+  Users, Factory, Building2, HardHat, Briefcase, MapPin, Key, 
+  UserCheck, UserX, Edit3, Save, X, Filter, ChevronDown, 
+  ChevronRight, Phone, Mail 
+} from 'lucide-react';
 
 const estandarizar = (txt) => txt.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
@@ -15,17 +19,28 @@ export default function VisorDirectorio({
   const [filtroRol, setFiltroRol] = useState('');
   const [datosEdit, setDatosEdit] = useState({});
   const [deptosAbiertos, setDeptosAbiertos] = useState({});
-
-  // ESTADO PARA VISOR DE FOTO AGRANDADA AL TOCAR CUALQUIER FOTO
   const [fotoZoom, setFotoZoom] = useState(null);
 
   if (!usuarios || usuarios.length === 0) {
-    return <div style={{ textAlign: 'center', padding: '40px', color: '#64748b', fontWeight: '500' }}>No se encontraron colaboradores.</div>;
+    return (
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8', background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(16px)', borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+        <Users size={48} style={{ opacity: 0.4, marginBottom: '10px' }} />
+        <div style={{ fontWeight: '800', fontSize: '16px', color: '#ffffff' }}>Sin colaboradores registrados</div>
+        <p style={{ fontSize: '13px', margin: '4px 0 0 0' }}>Agrega personal o ajusta los filtros de búsqueda.</p>
+      </div>
+    );
   }
 
   const usuariosPorTipo = usuarios.filter(u => 
     tipoActivo === 'TODOS' || u.tipo_personal?.toLowerCase() === tipoActivo.toLowerCase()
   );
+
+  const conteoTipos = {
+    TODOS: usuarios.length,
+    PRODUCCION: usuarios.filter(u => u.tipo_personal?.toLowerCase() === 'produccion').length,
+    ADMINISTRATIVO: usuarios.filter(u => u.tipo_personal?.toLowerCase() === 'administrativo').length,
+    OBRA: usuarios.filter(u => u.tipo_personal?.toLowerCase() === 'obra').length
+  };
 
   const arbol = usuariosPorTipo.reduce((acc, user) => {
     const depto = user.departamentos?.nombre?.toUpperCase() || 'SIN DEPARTAMENTO';
@@ -125,152 +140,308 @@ export default function VisorDirectorio({
     }
   };
 
+  // Badges luminosos optimizados para Dark Mode
   const badgeColors = {
-    gerente: { bg: '#fee2e2', text: '#991b1b', label: 'GERENTE' },
-    jefe_area: { bg: '#fef3c7', text: '#92400e', label: 'JEFE ÁREA' },
-    rh_nominas: { bg: '#e0e7ff', text: '#3730a3', label: 'RH / NÓMINAS' },
-    caseta: { bg: '#e2e8f0', text: '#334155', label: 'CASETA' },
-    empleado: { bg: '#dcfce7', text: '#166534', label: 'EMPLEADO' }
+    gerente: { bg: 'rgba(239, 68, 68, 0.2)', border: 'rgba(239, 68, 68, 0.5)', text: '#fca5a5', label: 'GERENTE' },
+    jefe_area: { bg: 'rgba(245, 158, 11, 0.2)', border: 'rgba(245, 158, 11, 0.5)', text: '#fcd34d', label: 'JEFE DE ÁREA' },
+    rh_nominas: { bg: 'rgba(99, 102, 241, 0.2)', border: 'rgba(99, 102, 241, 0.5)', text: '#a5b4fc', label: 'RH / NÓMINAS' },
+    caseta: { bg: 'rgba(148, 163, 184, 0.2)', border: 'rgba(148, 163, 184, 0.5)', text: '#cbd5e1', label: 'CASETA' },
+    empleado: { bg: 'rgba(34, 197, 94, 0.2)', border: 'rgba(34, 197, 94, 0.5)', text: '#86efac', label: 'EMPLEADO' }
   };
+
+  const categoriasHeader = [
+    { id: 'TODOS', label: 'TODOS', Icono: Users, count: conteoTipos.TODOS },
+    { id: 'PRODUCCION', label: 'PRODUCCIÓN', Icono: Factory, count: conteoTipos.PRODUCCION },
+    { id: 'ADMINISTRATIVO', label: 'ADMINISTRATIVO', Icono: Building2, count: conteoTipos.ADMINISTRATIVO },
+    { id: 'OBRA', label: 'OBRA', Icono: HardHat, count: conteoTipos.OBRA }
+  ];
 
   return (
     <div style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
       <style>{`
-        .tabs-bar {
-          display: flex;
-          gap: 8px;
-          overflow-x: auto;
-          padding-bottom: 6px;
-          margin-bottom: 15px;
-          -webkit-overflow-scrolling: touch;
+      /* TARJETAS SUPERIORES HERO - CRISTAL PURO */
+        .hero-categories-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+          margin-bottom: 20px;
         }
 
-        .tab-item {
-          padding: 8px 14px;
-          border-radius: 10px;
-          border: 1px solid #e2e8f0;
-          font-weight: 800;
-          font-size: 11px;
+        @media (min-width: 768px) {
+          .hero-categories-grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+          }
+        }
+
+        .cat-card-dark {
+          background: rgba(255, 255, 255, 0.08) !important;
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          border-radius: 16px;
+          padding: 14px 16px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
           cursor: pointer;
-          white-space: nowrap;
-          background: #fff;
-          color: #64748b;
+          transition: all 0.25s ease;
+          user-select: none;
+          color: #ffffff;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .cat-card-dark:hover {
+          transform: translateY(-2px);
+          background: rgba(255, 255, 255, 0.18) !important;
+          border-color: var(--color-tema, #3b82f6);
+        }
+
+        .cat-card-dark.active {
+          background: var(--color-tema, #3b82f6) !important;
+          border-color: var(--color-tema, #3b82f6);
+          color: #ffffff;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .cat-icon-wrapper-dark {
+          width: 42px;
+          height: 42px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.15);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           flex-shrink: 0;
         }
 
-        .tab-item.active {
-          background: var(--color-tema, #0f172a);
-          color: #fff;
-          border-color: var(--color-tema, #0f172a);
-          box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        .cat-card-dark.active .cat-icon-wrapper-dark {
+          background: rgba(255, 255, 255, 0.25);
+          color: #ffffff;
         }
 
-        .depto-bar {
-          padding: 12px 14px;
-          background: #fff;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
+        .cat-info {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+
+        .cat-label {
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: 0.8px;
+          text-transform: uppercase;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .cat-count {
+          font-size: 18px;
+          font-weight: 900;
+          line-height: 1.1;
+        }
+
+        /* ÁRBOL DEPARTAMENTAL - CRISTAL PURO */
+        .arbol-depto-node-dark {
+          background: rgba(0, 0, 0, 0.2) !important;
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 20px;
+          margin-bottom: 16px;
+          overflow: hidden;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .arbol-depto-header-dark {
+          padding: 16px 18px;
+          background: rgba(255, 255, 255, 0.05) !important;
           display: flex;
           justify-content: space-between;
           align-items: center;
           cursor: pointer;
-          margin-bottom: 8px;
+          border-left: 5px solid var(--color-tema, #3b82f6);
+          transition: background 0.2s;
         }
 
-        .depto-body {
-          padding: 10px 8px;
-          border-left: 3px solid var(--color-tema, #0f172a);
-          background: rgba(255,255,255,0.5);
-          margin-bottom: 15px;
-          border-radius: 0 10px 10px 12px;
+        .arbol-depto-header-dark:hover {
+          background: rgba(255, 255, 255, 0.12) !important;
+        }
+
+        .arbol-branch-container-dark {
+          padding: 16px;
+          background: rgba(0, 0, 0, 0.1) !important;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .arbol-area-section {
+          position: relative;
+          padding-left: 20px;
+          margin-bottom: 20px;
+        }
+
+        .arbol-area-section::before {
+          content: '';
+          position: absolute;
+          left: 6px;
+          top: 12px;
+          bottom: 0;
+          width: 2px;
+          background: rgba(255, 255, 255, 0.25);
+        }
+
+        .arbol-area-title-dark {
+          font-size: 12px;
+          font-weight: 900;
+          color: #ffffff;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-bottom: 12px;
+          position: relative;
+        }
+
+        .arbol-area-title-dark::before {
+          content: '';
+          position: absolute;
+          left: -14px;
+          top: 50%;
+          width: 10px;
+          height: 2px;
+          background: rgba(255, 255, 255, 0.25);
         }
 
         .cards-grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: 10px;
+          gap: 12px;
         }
 
-        @media (min-width: 600px) {
-          .cards-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+        @media (min-width: 640px) {
+          .cards-grid { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
         }
 
-        .user-card {
-          background: #fff;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          padding: 12px;
+        /* TARJETAS DE COLABORADOR - CRISTAL PURO */
+        .user-card-pro-dark {
+          background: rgba(255, 255, 255, 0.08) !important;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          border-radius: 16px;
+          padding: 14px;
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 10px;
           box-sizing: border-box;
-          word-break: break-word;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.2);
         }
 
-        .grid-filters {
+        .user-card-pro-dark:hover {
+          background: rgba(255, 255, 255, 0.15) !important;
+          border-color: var(--color-tema, #3b82f6);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+          transform: translateY(-2px);
+        }
+
+        .avatar-img-sharp-dark {
+          width: 52px;
+          height: 52px;
+          border-radius: 14px;
+          object-fit: cover;
+          cursor: pointer;
+          border: 2px solid var(--color-tema, #3b82f6);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+          image-rendering: -webkit-optimize-contrast;
+        }
+
+        /* DATAGRID / EXCEL EN CRISTAL PURO */
+        .grid-filters-dark {
           display: flex;
-          gap: 8px;
-          background: #f8fafc;
-          padding: 12px;
-          border-radius: 12px 12px 0 0;
-          border: 1px solid #e2e8f0;
+          gap: 10px;
+          background: rgba(0, 0, 0, 0.2) !important;
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          padding: 14px 16px;
+          border-radius: 16px 16px 0 0;
+          border: 1px solid rgba(255, 255, 255, 0.15);
           border-bottom: none;
           flex-wrap: wrap;
+          align-items: center;
         }
 
-        .filter-select {
-          padding: 8px;
-          border-radius: 8px;
-          border: 1px solid #cbd5e1;
-          font-size: 11px;
-          font-weight: 600;
+        .filter-select-dark {
+          padding: 10px 12px;
+          border-radius: 10px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          font-size: 12px;
+          font-weight: 700;
           outline: none;
-          flex: 1 1 140px;
+          flex: 1 1 160px;
+          background: rgba(255, 255, 255, 0.1) !important;
           box-sizing: border-box;
+          color: #ffffff;
         }
 
-        .table-box {
+        .filter-select-dark option {
+          background: #090d16;
+          color: #ffffff;
+        }
+
+        .table-box-dark {
           width: 100%;
-          background: #fff;
-          border-radius: 0 0 12px 12px;
-          border: 1px solid #e2e8f0;
+          background: rgba(0, 0, 0, 0.2) !important;
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-radius: 0 0 16px 16px;
+          border: 1px solid rgba(255, 255, 255, 0.15);
           box-sizing: border-box;
+          overflow: hidden;
         }
 
         .responsive-table {
           width: 100%;
           border-collapse: collapse;
-          font-size: 12px;
+          font-size: 13px;
           text-align: left;
         }
 
         .responsive-table th {
-          background: #f1f5f9;
-          padding: 10px;
-          font-weight: 800;
-          color: #334155;
-          border-bottom: 2px solid #cbd5e1;
+          background: rgba(255, 255, 255, 0.1) !important;
+          padding: 12px 14px;
+          font-weight: 900;
+          color: #ffffff;
+          border-bottom: 2px solid rgba(255, 255, 255, 0.15);
           white-space: nowrap;
+          font-size: 11px;
+          text-transform: uppercase;
         }
 
         .responsive-table td {
-          padding: 10px;
-          border-bottom: 1px solid #f1f5f9;
+          padding: 12px 14px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           vertical-align: middle;
+          color: #ffffff;
         }
 
-        .edit-input {
+        .edit-input-dark {
           width: 100%;
-          padding: 8px;
-          border: 1px solid var(--color-tema, #0f172a);
-          border-radius: 6px;
+          padding: 8px 10px;
+          border: 1.5px solid var(--color-tema, #3b82f6);
+          border-radius: 8px;
           font-size: 12px;
-          font-weight: 600;
+          font-weight: 700;
           outline: none;
           box-sizing: border-box;
-          background: #fff;
+          background: rgba(0, 0, 0, 0.4) !important;
+          color: #ffffff;
         }
 
+        /* CELULARES - CRISTAL PURO */
         @media (max-width: 768px) {
           .responsive-table thead { display: none; }
           
@@ -284,125 +455,152 @@ export default function VisorDirectorio({
           }
 
           .responsive-table tr { 
-            margin-bottom: 12px; 
-            border: 1px solid #e2e8f0; 
-            border-left: 4px solid var(--color-tema, #0f172a);
-            border-radius: 12px; 
-            background: #fff; 
-            padding: 8px 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            margin: 12px; 
+            width: calc(100% - 24px);
+            border: 1px solid rgba(255, 255, 255, 0.18); 
+            border-left: 5px solid var(--color-tema, #3b82f6);
+            border-radius: 16px; 
+            background: rgba(255, 255, 255, 0.08) !important; 
+            backdrop-filter: blur(12px);
+            padding: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
           }
 
           .responsive-table td { 
             text-align: left; 
-            padding: 22px 6px 6px 6px; 
+            padding: 24px 8px 8px 8px; 
             position: relative; 
-            border-bottom: 1px dashed #f1f5f9; 
-            min-height: 48px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.12); 
+            min-height: 44px;
           }
 
           .responsive-table td::before { 
             content: attr(data-label); 
             position: absolute; 
-            top: 5px; 
-            left: 6px; 
-            font-weight: 800; 
-            color: #64748b; 
+            top: 6px; 
+            left: 8px; 
+            font-weight: 900; 
+            color: #cbd5e1; 
             font-size: 9px; 
             text-transform: uppercase; 
-            letter-spacing: 0.5px;
           }
 
           .responsive-table td:last-child { 
             border-bottom: none;
-            background: #f8fafc;
-            border-radius: 8px;
-            margin-top: 6px;
-            padding: 8px;
+            background: rgba(0, 0, 0, 0.25) !important;
+            border-radius: 10px;
+            margin-top: 8px;
+            padding: 10px;
           }
         }
       `}</style>
 
-      {/* TABS TIPO DE PERSONAL */}
-      <div className="tabs-bar">
-        {['TODOS', 'PRODUCCION', 'ADMINISTRATIVO', 'OBRA'].map(tipo => (
-          <button 
-            key={tipo} 
-            onClick={() => setTipoActivo(tipo)} 
-            className={`tab-item ${tipoActivo === tipo ? 'active' : ''}`}
-          >
-            {tipo.toUpperCase()}
-          </button>
-        ))}
+      {/* CLASIFICADOR HERO SUPERIOR */}
+      <div className="hero-categories-grid">
+        {categoriasHeader.map(({ id, label, Icono, count }) => {
+          const esActivo = tipoActivo === id;
+          return (
+            <div 
+              key={id} 
+              className={`cat-card-dark ${esActivo ? 'active' : ''}`}
+              onClick={() => setTipoActivo(id)}
+            >
+              <div className="cat-icon-wrapper-dark">
+                <Icono size={22} />
+              </div>
+              <div className="cat-info">
+                <span className="cat-label">{label}</span>
+                <span className="cat-count">{count}</span>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {vista === 'arbol' ? (
-        /* ÁRBOL DE JERARQUÍAS */
+        /* ÁRBOL ORGANIZACIONAL EN CRISTAL OSCURO */
         <div>
           {Object.keys(arbol).sort().map(depto => {
             const estaAbierto = deptosAbiertos[depto];
             const totalPersonas = Object.values(arbol[depto]).flat().length;
             
             return (
-              <div key={depto}>
-                <div className="depto-bar" onClick={() => toggleDepto(depto)}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Briefcase size={18} color={estaAbierto ? 'var(--color-tema, #0f172a)' : '#64748b'} />
-                    <span style={{ fontSize: '13px', fontWeight: '900', color: estaAbierto ? 'var(--color-tema, #0f172a)' : '#1e293b' }}>{depto}</span>
-                    <span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '8px', fontSize: '10px', fontWeight: '800', color: '#475569' }}>
+              <div key={depto} className="arbol-depto-node-dark">
+                <div className="arbol-depto-header-dark" onClick={() => toggleDepto(depto)}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <Briefcase size={20} color={estaAbierto ? 'var(--color-tema, #3b82f6)' : '#94a3b8'} />
+                    <div>
+                      <div style={{ fontSize: '15px', fontWeight: '900', color: '#ffffff' }}>
+                        {depto}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '700' }}>
+                        Macro-Departamento • {totalPersonas} {totalPersonas === 1 ? 'Colaborador' : 'Colaboradores'}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ background: 'var(--color-tema, #3b82f6)', color: '#ffffff', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '900' }}>
                       {totalPersonas}
                     </span>
+                    {estaAbierto ? <ChevronDown size={20} color="var(--color-tema, #3b82f6)"/> : <ChevronRight size={20} color="#94a3b8"/>}
                   </div>
-                  {estaAbierto ? <ChevronDown size={18} color="var(--color-tema, #0f172a)"/> : <ChevronRight size={18} color="#94a3b8"/>}
                 </div>
 
                 {estaAbierto && (
-                  <div className="depto-body">
+                  <div className="arbol-branch-container-dark">
                     {Object.keys(arbol[depto]).sort().map(area => (
-                      <div key={area} style={{ marginBottom: '15px' }}>
-                        <div style={{ fontSize: '11px', fontWeight: '800', color: '#475569', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <MapPin size={13} color="#64748b"/> {area} ({arbol[depto][area].length})
+                      <div key={area} className="arbol-area-section">
+                        <div className="arbol-area-title-dark">
+                          <MapPin size={14} color="var(--color-tema, #3b82f6)" />
+                          <span>ÁREA FÍSICA: {area}</span>
+                          <span style={{ color: '#94a3b8', fontSize: '11px' }}>({arbol[depto][area].length})</span>
                         </div>
 
                         <div className="cards-grid">
                           {arbol[depto][area].map(user => {
                             const badge = badgeColors[user.rol] || badgeColors.empleado;
-                            const urlFoto = user.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nombre_completo)}&background=f1f5f9&color=000`;
+                            const urlFoto = user.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nombre_completo)}&background=1e293b&color=fff`;
                             
                             return (
-                              <div key={user.id} className="user-card" style={{ opacity: user.activo ? 1 : 0.5 }}>
+                              <div key={user.id} className="user-card-pro-dark" style={{ opacity: user.activo ? 1 : 0.55 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                   
-                                  {/* FOTO CLICKABLE PARA AGRANDAR */}
                                   <img 
                                     src={urlFoto} 
                                     alt="Foto" 
+                                    className="avatar-img-sharp-dark"
                                     onClick={() => setFotoZoom({ url: urlFoto, nombre: user.nombre_completo, puesto: user.puesto })}
                                     title="Toca para ver foto grande"
-                                    style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0, cursor: 'pointer', border: '2px solid #cbd5e1' }}
                                   />
 
                                   <div style={{ display: 'flex', gap: '4px' }}>
-                                    <button onClick={() => onRestablecerPin(user.id, user.nombre_completo)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer' }}><Key size={13} color="#64748b"/></button>
-                                    <button onClick={() => onToggleEstado(user.id, user.activo)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer' }}>
-                                      {user.activo ? <UserX size={13} color="#ef4444"/> : <UserCheck size={13} color="#22c55e"/>}
+                                    <button onClick={() => onRestablecerPin(user.id, user.nombre_completo)} style={{ background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '8px', padding: '6px', cursor: 'pointer' }} title="Restablecer PIN"><Key size={14} color="#cbd5e1"/></button>
+                                    <button onClick={() => onToggleEstado(user.id, user.activo)} style={{ background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '8px', padding: '6px', cursor: 'pointer' }} title={user.activo ? "Desactivar" : "Activar"}>
+                                      {user.activo ? <UserX size={14} color="#ef4444"/> : <UserCheck size={14} color="#22c55e"/>}
                                     </button>
                                   </div>
                                 </div>
 
                                 <div>
-                                  <div style={{ fontSize: '13px', fontWeight: '800', color: '#1e293b' }}>{user.nombre_completo}</div>
-                                  <div style={{ fontSize: '10px', color: 'var(--color-tema, #0f172a)', fontWeight: '800' }}>@{user.usuario_login} • {user.numero_empleado}</div>
+                                  <div style={{ fontSize: '14px', fontWeight: '900', color: '#ffffff', lineHeight: 1.2 }}>{user.nombre_completo}</div>
+                                  <div style={{ fontSize: '11px', color: 'var(--color-tema, #3b82f6)', fontWeight: '800', marginTop: '2px' }}>
+                                    @{user.usuario_login} • EMP-#{user.numero_empleado}
+                                  </div>
                                   
-                                  <div style={{ marginTop: '6px', fontSize: '11px', color: '#475569', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                    <div><strong>PUESTO:</strong> {user.puesto?.toUpperCase() || 'NO ASIGNADO'}</div>
-                                    {user.celular && <div><Phone size={10} style={{ verticalAlign: 'middle' }}/> {user.celular}</div>}
-                                    {user.correo && <div style={{ wordBreak: 'break-all' }}><Mail size={10} style={{ verticalAlign: 'middle' }}/> {user.correo}</div>}
+                                  <div style={{ marginTop: '8px', fontSize: '11px', color: '#cbd5e1', display: 'flex', flexDirection: 'column', gap: '3px', background: 'rgba(15, 23, 42, 0.6)', padding: '8px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                    <div><strong style={{ color: '#ffffff' }}>PUESTO:</strong> {user.puesto?.toUpperCase() || 'NO ASIGNADO'}</div>
+                                    {user.celular && <div><Phone size={11} style={{ verticalAlign: 'middle', marginRight: '4px' }}/>{user.celular}</div>}
+                                    {user.correo && <div style={{ wordBreak: 'break-all' }}><Mail size={11} style={{ verticalAlign: 'middle', marginRight: '4px' }}/>{user.correo}</div>}
                                   </div>
 
-                                  <span style={{ display: 'inline-block', marginTop: '8px', padding: '3px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '900', background: badge.bg, color: badge.text }}>
-                                    {badge.label}
-                                  </span>
+                                  <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '900', background: badge.bg, color: badge.text, border: `1px solid ${badge.border}` }}>
+                                      {badge.label}
+                                    </span>
+                                    <span style={{ fontSize: '10px', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase' }}>
+                                      {user.tipo_personal}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
                             );
@@ -417,16 +615,18 @@ export default function VisorDirectorio({
           })}
         </div>
       ) : (
-        /* DATAGRID */
+        /* DATAGRID / EXCEL EN CRISTAL OSCURO */
         <div>
-          <div className="grid-filters">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800', color: '#475569', fontSize: '11px' }}><Filter size={14} /> FILTROS:</div>
-            <select className="filter-select" value={filtroDepto} onChange={e => setFiltroDepto(e.target.value)}>
+          <div className="grid-filters-dark">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '900', color: '#ffffff', fontSize: '12px' }}>
+              <Filter size={16} color="var(--color-tema, #3b82f6)" /> FILTROS:
+            </div>
+            <select className="filter-select-dark" value={filtroDepto} onChange={e => setFiltroDepto(e.target.value)}>
               <option value="">TODOS LOS DEPARTAMENTOS</option>
               {departamentos.map(d => <option key={d.id} value={d.id}>{d.nombre}</option>)}
             </select>
-            <select className="filter-select" value={filtroRol} onChange={e => setFiltroRol(e.target.value)}>
-              <option value="">TODOS LOS ROLES</option>
+            <select className="filter-select-dark" value={filtroRol} onChange={e => setFiltroRol(e.target.value)}>
+              <option value="">TODOS LOS ROLES ERP</option>
               <option value="gerente">GERENTES</option>
               <option value="jefe_area">JEFES DE ÁREA</option>
               <option value="rh_nominas">RECURSOS HUMANOS</option>
@@ -435,7 +635,7 @@ export default function VisorDirectorio({
             </select>
           </div>
 
-          <div className="table-box">
+          <div className="table-box-dark">
             <table className="responsive-table">
               <thead>
                 <tr>
@@ -444,7 +644,7 @@ export default function VisorDirectorio({
                   <th>Departamento</th>
                   <th>Área Física</th>
                   <th>Puesto Real</th>
-                  <th>Tipo Nómina</th>
+                  <th>Nómina</th>
                   <th>Rol ERP</th>
                   <th>Contacto</th>
                   <th style={{ textAlign: 'center' }}>Acciones</th>
@@ -454,91 +654,99 @@ export default function VisorDirectorio({
                 {usuariosFiltradosTabla.map(user => {
                   const enEdicion = editandoId === user.id;
                   const badge = badgeColors[user.rol] || badgeColors.empleado;
-                  const urlFoto = user.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nombre_completo)}&background=f1f5f9&color=000`;
+                  const urlFoto = user.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nombre_completo)}&background=1e293b&color=fff`;
 
                   return (
                     <tr key={user.id} style={{ opacity: user.activo ? 1 : 0.6 }}>
                       <td data-label="No. Empleado">
-                        {enEdicion ? <input type="text" className="edit-input" value={datosEdit.numero_empleado} onChange={e => setDatosEdit({...datosEdit, numero_empleado: e.target.value})} /> : <strong>{user.numero_empleado}</strong>}
+                        {enEdicion ? (
+                          <input type="text" className="edit-input-dark" value={datosEdit.numero_empleado} onChange={e => setDatosEdit({...datosEdit, numero_empleado: e.target.value})} />
+                        ) : (
+                          <strong style={{ color: 'var(--color-tema, #3b82f6)', fontSize: '13px' }}>#{user.numero_empleado}</strong>
+                        )}
                       </td>
 
                       <td data-label="Colaborador">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <img 
                             src={urlFoto} 
                             alt="Foto" 
                             onClick={() => setFotoZoom({ url: urlFoto, nombre: user.nombre_completo, puesto: user.puesto })}
                             title="Toca para ver foto grande"
-                            style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', cursor: 'pointer', border: '1px solid #cbd5e1' }}
+                            style={{ width: '36px', height: '36px', borderRadius: '10px', objectFit: 'cover', cursor: 'pointer', border: '1.5px solid var(--color-tema, #3b82f6)', flexShrink: 0, imageRendering: '-webkit-optimize-contrast' }}
                           />
                           <div>
-                            <div style={{ fontWeight: '800', color: '#1e293b' }}>{user.nombre_completo}</div>
-                            <div style={{ fontSize: '10px', color: 'var(--color-tema, #0f172a)', fontWeight: '800' }}>@{user.usuario_login}</div>
+                            <div style={{ fontWeight: '900', color: '#ffffff' }}>{user.nombre_completo}</div>
+                            <div style={{ fontSize: '10px', color: 'var(--color-tema, #3b82f6)', fontWeight: '800' }}>@{user.usuario_login}</div>
                           </div>
                         </div>
                       </td>
 
                       <td data-label="Departamento">
                         {enEdicion ? (
-                          <select className="edit-input" value={datosEdit.departamento_id} onChange={handleEditDepto}>
+                          <select className="edit-input-dark" value={datosEdit.departamento_id} onChange={handleEditDepto}>
                             {departamentos.map(d => <option key={d.id} value={d.id}>{d.nombre}</option>)}
-                            <option value="NEW" style={{fontWeight: '900', color: 'var(--color-tema, #0f172a)'}}>+ CREAR NUEVO...</option>
+                            <option value="NEW" style={{fontWeight: '900', color: 'var(--color-tema, #3b82f6)'}}>+ CREAR NUEVO...</option>
                           </select>
                         ) : user.departamentos?.nombre?.toUpperCase()}
                       </td>
 
                       <td data-label="Área Física">
                         {enEdicion ? (
-                          <select className="edit-input" value={datosEdit.area} onChange={handleEditArea}>
+                          <select className="edit-input-dark" value={datosEdit.area} onChange={handleEditArea}>
                             {!areas.includes(datosEdit.area) && datosEdit.area !== '' && <option value={datosEdit.area}>{datosEdit.area}</option>}
                             {areas.map(a => <option key={a} value={a}>{a}</option>)}
-                            <option value="NEW" style={{fontWeight: '900', color: 'var(--color-tema, #0f172a)'}}>+ CREAR NUEVA...</option>
+                            <option value="NEW" style={{fontWeight: '900', color: 'var(--color-tema, #3b82f6)'}}>+ CREAR NUEVA...</option>
                           </select>
                         ) : user.area?.toUpperCase()}
                       </td>
 
-                      <td data-label="Puesto">
+                      <td data-label="Puesto Real">
                         {enEdicion ? (
-                          <select className="edit-input" value={datosEdit.puesto} onChange={handleEditPuesto}>
+                          <select className="edit-input-dark" value={datosEdit.puesto} onChange={handleEditPuesto}>
                             {!puestos.includes(datosEdit.puesto) && datosEdit.puesto !== '' && <option value={datosEdit.puesto}>{datosEdit.puesto}</option>}
                             <option value="">-- SIN PUESTO --</option>
                             {puestos.map(p => <option key={p} value={p}>{p}</option>)}
-                            <option value="NEW" style={{fontWeight: '900', color: 'var(--color-tema, #0f172a)'}}>+ CREAR NUEVO...</option>
+                            <option value="NEW" style={{fontWeight: '900', color: 'var(--color-tema, #3b82f6)'}}>+ CREAR NUEVO...</option>
                           </select>
-                        ) : user.puesto?.toUpperCase()}
+                        ) : user.puesto?.toUpperCase() || 'NO ASIGNADO'}
                       </td>
 
-                      <td data-label="Tipo Nómina">
+                      <td data-label="Nómina">
                         {enEdicion ? (
-                          <select className="edit-input" value={datosEdit.tipo_personal} onChange={e => setDatosEdit({...datosEdit, tipo_personal: e.target.value})}>
-                            <option value="produccion">PRODUCCION</option>
+                          <select className="edit-input-dark" value={datosEdit.tipo_personal} onChange={e => setDatosEdit({...datosEdit, tipo_personal: e.target.value})}>
+                            <option value="produccion">PRODUCCIÓN</option>
                             <option value="administrativo">ADMINISTRATIVO</option>
                             <option value="obra">OBRA</option>
                           </select>
-                        ) : user.tipo_personal?.toUpperCase()}
+                        ) : <span style={{ fontWeight: '800', color: '#cbd5e1', fontSize: '11px' }}>{user.tipo_personal?.toUpperCase()}</span>}
                       </td>
 
                       <td data-label="Rol ERP">
                         {enEdicion ? (
-                          <select className="edit-input" value={datosEdit.rol} onChange={e => setDatosEdit({...datosEdit, rol: e.target.value})}>
+                          <select className="edit-input-dark" value={datosEdit.rol} onChange={e => setDatosEdit({...datosEdit, rol: e.target.value})}>
                             <option value="empleado">EMPLEADO</option>
                             <option value="jefe_area">JEFE ÁREA</option>
                             <option value="gerente">GERENTE</option>
                             <option value="rh_nominas">RH / NÓMINAS</option>
                             <option value="caseta">CASETA</option>
                           </select>
-                        ) : <span style={{ background: badge.bg, color: badge.text, padding: '2px 5px', borderRadius: '4px', fontSize: '9px', fontWeight: '900' }}>{badge.label}</span>}
+                        ) : (
+                          <span style={{ background: badge.bg, color: badge.text, border: `1px solid ${badge.border}`, padding: '3px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '900' }}>
+                            {badge.label}
+                          </span>
+                        )}
                       </td>
 
                       <td data-label="Contacto">
                         {enEdicion ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <input type="tel" placeholder="Celular" className="edit-input" value={datosEdit.celular} onChange={e => setDatosEdit({...datosEdit, celular: e.target.value})} />
-                            <input type="email" placeholder="Correo" className="edit-input" value={datosEdit.correo} onChange={e => setDatosEdit({...datosEdit, correo: e.target.value})} />
+                            <input type="tel" placeholder="Celular" className="edit-input-dark" value={datosEdit.celular} onChange={e => setDatosEdit({...datosEdit, celular: e.target.value})} />
+                            <input type="email" placeholder="Correo" className="edit-input-dark" value={datosEdit.correo} onChange={e => setDatosEdit({...datosEdit, correo: e.target.value})} />
                           </div>
                         ) : (
-                          <div style={{ fontSize: '10px', color: '#64748b' }}>
-                            {user.celular || 'Sin cel'}
+                          <div style={{ fontSize: '11px', color: '#cbd5e1' }}>
+                            {user.celular || 'Sin celular'}
                           </div>
                         )}
                       </td>
@@ -546,11 +754,11 @@ export default function VisorDirectorio({
                       <td data-label="Acciones">
                         {enEdicion ? (
                           <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-start' }}>
-                            <button disabled={guardando} onClick={() => guardarEdicionRapida(user.id)} style={{ background: '#dcfce7', border: 'none', color: '#22c55e', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}><Save size={14}/> GUARDAR</button>
-                            <button onClick={() => setEditandoId(null)} style={{ background: '#fee2e2', border: 'none', color: '#ef4444', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}><X size={14}/> CANCELAR</button>
+                            <button disabled={guardando} onClick={() => guardarEdicionRapida(user.id)} style={{ background: '#22c55e', border: 'none', color: '#ffffff', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', fontWeight: '900', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}><Save size={14}/> GUARDAR</button>
+                            <button onClick={() => setEditandoId(null)} style={{ background: '#ef4444', border: 'none', color: '#ffffff', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', fontWeight: '900', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}><X size={14}/> CANCELAR</button>
                           </div>
                         ) : (
-                          <button onClick={() => iniciarEdicion(user)} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', color: 'var(--color-tema, #0f172a)', padding: '5px 10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Edit3 size={14} /> EDITAR</button>
+                          <button onClick={() => iniciarEdicion(user)} style={{ background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '8px', color: 'var(--color-tema, #3b82f6)', padding: '6px 12px', cursor: 'pointer', fontWeight: '900', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Edit3 size={14} /> EDITAR</button>
                         )}
                       </td>
                     </tr>
@@ -562,13 +770,13 @@ export default function VisorDirectorio({
         </div>
       )}
 
-      {/* VISOR LIGHTBOX GENERAL PARA TODAS LAS FOTOS DEL DIRECTORIO */}
+      {/* LIGHTBOX AMPLIFICADOR DE FOTOS */}
       {fotoZoom && (
         <div 
           style={{
             position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-            backdropFilter: 'blur(5px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.92)',
+            backdropFilter: 'blur(12px)',
             display: 'flex', flexDirection: 'column',
             justifyContent: 'center', alignItems: 'center',
             zIndex: 3500, padding: '20px'
@@ -583,7 +791,7 @@ export default function VisorDirectorio({
               onClick={() => setFotoZoom(null)}
               style={{
                 position: 'absolute', top: '-45px', right: '0',
-                background: 'rgba(255,255,255,0.2)', border: 'none',
+                background: 'rgba(255,255,255,0.25)', border: 'none',
                 color: '#fff', fontSize: '20px', borderRadius: '50%',
                 width: '38px', height: '38px', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center'
@@ -598,14 +806,15 @@ export default function VisorDirectorio({
                 maxWidth: '100%', maxHeight: '70vh',
                 borderRadius: '16px', objectFit: 'contain',
                 boxShadow: '0 10px 35px rgba(0,0,0,0.8)',
-                border: '2px solid rgba(255,255,255,0.2)'
+                border: '3px solid var(--color-tema, #3b82f6)',
+                imageRendering: '-webkit-optimize-contrast'
               }} 
             />
-            <div style={{ color: '#fff', marginTop: '12px' }}>
-              <div style={{ fontSize: '16px', fontWeight: '900' }}>{fotoZoom.nombre}</div>
-              {fotoZoom.puesto && <div style={{ fontSize: '12px', color: '#cbd5e1' }}>{fotoZoom.puesto}</div>}
+            <div style={{ color: '#ffffff', marginTop: '14px' }}>
+              <div style={{ fontSize: '18px', fontWeight: '900' }}>{fotoZoom.nombre}</div>
+              {fotoZoom.puesto && <div style={{ fontSize: '13px', color: '#cbd5e1', marginTop: '2px' }}>{fotoZoom.puesto}</div>}
             </div>
-            <p style={{ color: '#94a3b8', marginTop: '10px', fontSize: '11px', letterSpacing: '1px' }}>
+            <p style={{ color: '#94a3b8', marginTop: '12px', fontSize: '11px', letterSpacing: '1px' }}>
               TOCA EN CUALQUIER PARTE PARA CERRAR
             </p>
           </div>
