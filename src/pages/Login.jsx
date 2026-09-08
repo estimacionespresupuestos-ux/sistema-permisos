@@ -13,23 +13,24 @@ export default function Login({ alEntrar }) {
     
     setCargando(true);
     const usuarioDigitado = idUsuario.trim();
+    const pinDigitado = pass.trim();
 
     try {
-      // 1. Buscamos por la columna 'usuario' y traemos todos los campos nuevos
+      // Consulta con las columnas reales de Supabase: 'usuario_login' y 'pin'
       const { data, error } = await supabase
         .from('usuarios')
         .select('*')
-        .ilike('usuario_login', usuario.trim()) // Busca ignorando mayúsculas/minúsculas
-  .eq('pin', pin.trim())
+        .ilike('usuario_login', usuarioDigitado)
+        .eq('pin', pinDigitado)
         .single();
 
       if (error || !data) {
         alert("Credenciales incorrectas");
       } else {
-        // 2. Guardamos la sesión con los campos exactos de la nueva tabla
+        // Guardamos la sesión usando las columnas correctas
         localStorage.setItem("permisos_sesion", JSON.stringify({
           id: data.id,
-          usuario: data.usuario,
+          usuario: data.usuario_login,
           nombre_completo: data.nombre_completo,
           rol: data.rol,
           area: data.area,
@@ -63,7 +64,7 @@ export default function Login({ alEntrar }) {
           <input 
             style={styles.input} 
             type="password" 
-            placeholder="CONTRASEÑA" 
+            placeholder="PIN / CONTRASEÑA" 
             value={pass}
             onChange={(e) => setPass(e.target.value)}
           />
