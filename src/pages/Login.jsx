@@ -19,8 +19,8 @@ export default function Login({ alEntrar }) {
       const { data, error } = await supabase
         .from('usuarios')
         .select('*')
-        .ilike('usuario', usuarioDigitado) 
-        .eq('password', pass)
+        .ilike('usuario_login', usuario.trim()) // Busca ignorando mayúsculas/minúsculas
+  .eq('pin', pin.trim())
         .single();
 
       if (error || !data) {
