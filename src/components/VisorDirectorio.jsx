@@ -24,9 +24,9 @@ const obtenerIconoDepto = (nombre) => {
   if (txt.includes('SEGURIDAD') || txt.includes('CASETA')) return ShieldAlert;
   if (txt.includes('RECURSO') || txt.includes('RH') || txt.includes('NOMINA')) return HeartHandshake;
   if (txt.includes('PRODUCCION') || txt.includes('MANUFACTURA')) return Factory;
-  if (txt.includes('OBRA') || txt.includes('INSTALACION')) return HardHat;
+  if (txt.includes('OBRA') || txt.includes('INSTALACION') || txt.includes('ESTIMACION')) return HardHat;
   if (txt.includes('ELECTRIC') || txt.includes('ELECTROMECANICA')) return Zap;
-  return Briefcase;
+  return Briefcase; // Icono por defecto
 };
 
 export default function VisorDirectorio({ 
@@ -41,6 +41,9 @@ export default function VisorDirectorio({
   const [datosEdit, setDatosEdit] = useState({});
   const [deptosAbiertos, setDeptosAbiertos] = useState({});
   const [fotoZoom, setFotoZoom] = useState(null);
+  
+  // ESTADO PARA EL ACORDEÓN EN CELULARES
+  const [filasExpandidas, setFilasExpandidas] = useState({});
 
   if (!usuarios || usuarios.length === 0) {
     return (
@@ -76,6 +79,10 @@ export default function VisorDirectorio({
     setDeptosAbiertos(prev => ({ ...prev, [depto]: !prev[depto] }));
   };
 
+  const toggleFilaMobile = (id) => {
+    setFilasExpandidas(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   const usuariosFiltradosTabla = usuariosPorTipo.filter(u => {
     const pasaDepto = filtroDepto === '' || u.departamento_id === filtroDepto;
     const pasaRol = filtroRol === '' || u.rol === filtroRol;
@@ -84,6 +91,7 @@ export default function VisorDirectorio({
 
   const iniciarEdicion = (user) => {
     setEditandoId(user.id);
+    setFilasExpandidas(prev => ({ ...prev, [user.id]: true })); // Expande en celular al editar
     setDatosEdit({
       numero_empleado: user.numero_empleado,
       departamento_id: user.departamento_id,
@@ -286,7 +294,7 @@ export default function VisorDirectorio({
           .cards-grid { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
         }
 
-        /* TARJETAS DE COLABORADOR - CRISTAL AHUMADO */
+        /* TARJETAS DE COLABORADOR - CRISTAL AHUMADO (VISTA ARBOL) */
         .user-card-pro-dark {
           background: rgba(0, 0, 0, 0.25) !important;
           border: 1px solid rgba(255, 255, 255, 0.1);
@@ -397,14 +405,15 @@ export default function VisorDirectorio({
           color: #ffffff;
         }
 
-        /* CELULARES - CRISTAL AHUMADO */
+        /* CELULARES - ACORDEÓN COMPACTO */
+        .mobile-chevron { display: none; }
+
         @media (max-width: 768px) {
           .responsive-table thead { display: none; }
           
           .responsive-table, 
           .responsive-table tbody, 
-          .responsive-table tr, 
-          .responsive-table td { 
+          .responsive-table tr { 
             display: block; 
             width: 100%; 
             box-sizing: border-box; 
@@ -418,35 +427,52 @@ export default function VisorDirectorio({
             border-radius: 16px; 
             background: rgba(0, 0, 0, 0.45) !important; 
             backdrop-filter: blur(12px);
-            padding: 12px;
+            overflow: hidden;
             box-shadow: 0 6px 18px rgba(0,0,0,0.3);
           }
 
+          /* Oculta los TD por defecto en celular */
           .responsive-table td { 
+            display: none; 
             text-align: left; 
-            padding: 24px 8px 8px 8px; 
+            padding: 8px 12px; 
             position: relative; 
             border-bottom: 1px dashed rgba(255, 255, 255, 0.12); 
-            min-height: 44px;
+            flex-direction: column;
+            gap: 4px;
+          }
+
+          /* El TD Colaborador SIEMPRE está visible (es el botón del acordeón) */
+          .responsive-table td[data-label="Colaborador"] {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            padding: 12px;
+          }
+
+          .mobile-chevron { display: block; color: rgba(255,255,255,0.5); }
+
+          /* Si la fila tiene la clase .expandida, mostramos los demás TD */
+          .responsive-table tr.expandida td {
+            display: flex;
           }
 
           .responsive-table td::before { 
             content: attr(data-label); 
-            position: absolute; 
-            top: 6px; 
-            left: 8px; 
             font-weight: 900; 
             color: #cbd5e1; 
             font-size: 9px; 
             text-transform: uppercase; 
           }
 
+          .responsive-table td[data-label="Colaborador"]::before { display: none; }
+
           .responsive-table td:last-child { 
             border-bottom: none;
             background: rgba(0, 0, 0, 0.25) !important;
-            border-radius: 10px;
-            margin-top: 8px;
-            padding: 10px;
           }
         }
       `}</style>
@@ -614,31 +640,37 @@ export default function VisorDirectorio({
                   const enEdicion = editandoId === user.id;
                   const badge = badgeColors[user.rol] || badgeColors.empleado;
                   const urlFoto = user.foto_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nombre_completo)}&background=1e293b&color=fff`;
+                  const estaExpandida = filasExpandidas[user.id];
 
                   return (
-                    <tr key={user.id} style={{ opacity: user.activo ? 1 : 0.6 }}>
+                    <tr key={user.id} className={estaExpandida ? 'expandida' : ''} style={{ opacity: user.activo ? 1 : 0.6 }}>
+                      
+                      {/* CELDA VISIBLE SIEMPRE EN CELULAR (ENCABEZADO DEL ACORDEÓN) */}
+                      <td data-label="Colaborador" onClick={() => toggleFilaMobile(user.id)}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <img 
+                            src={urlFoto} 
+                            alt="Foto" 
+                            onClick={(e) => { e.stopPropagation(); setFotoZoom({ url: urlFoto, nombre: user.nombre_completo, puesto: user.puesto }); }}
+                            title="Toca para ver foto grande"
+                            style={{ width: '36px', height: '36px', borderRadius: '10px', objectFit: 'cover', cursor: 'pointer', border: '1.5px solid var(--color-tema, #3b82f6)', flexShrink: 0, imageRendering: '-webkit-optimize-contrast' }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: '900', color: '#ffffff' }}>{user.nombre_completo}</div>
+                            <div style={{ fontSize: '10px', color: 'var(--color-tema, #3b82f6)', fontWeight: '800' }}>#{user.numero_empleado} • {user.puesto || 'Sin puesto'}</div>
+                          </div>
+                        </div>
+                        <div className="mobile-chevron">
+                          {estaExpandida ? <ChevronDown size={18}/> : <ChevronRight size={18}/>}
+                        </div>
+                      </td>
+
                       <td data-label="No. Empleado">
                         {enEdicion ? (
                           <input type="text" className="edit-input-dark" value={datosEdit.numero_empleado} onChange={e => setDatosEdit({...datosEdit, numero_empleado: e.target.value})} />
                         ) : (
                           <strong style={{ color: 'var(--color-tema, #3b82f6)', fontSize: '13px' }}>#{user.numero_empleado}</strong>
                         )}
-                      </td>
-
-                      <td data-label="Colaborador">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <img 
-                            src={urlFoto} 
-                            alt="Foto" 
-                            onClick={() => setFotoZoom({ url: urlFoto, nombre: user.nombre_completo, puesto: user.puesto })}
-                            title="Toca para ver foto grande"
-                            style={{ width: '36px', height: '36px', borderRadius: '10px', objectFit: 'cover', cursor: 'pointer', border: '1.5px solid var(--color-tema, #3b82f6)', flexShrink: 0, imageRendering: '-webkit-optimize-contrast' }}
-                          />
-                          <div>
-                            <div style={{ fontWeight: '900', color: '#ffffff' }}>{user.nombre_completo}</div>
-                            <div style={{ fontSize: '10px', color: 'var(--color-tema, #3b82f6)', fontWeight: '800' }}>@{user.usuario_login}</div>
-                          </div>
-                        </div>
                       </td>
 
                       <td data-label="Departamento">
@@ -714,10 +746,10 @@ export default function VisorDirectorio({
                         {enEdicion ? (
                           <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-start' }}>
                             <button disabled={guardando} onClick={() => guardarEdicionRapida(user.id)} style={{ background: '#22c55e', border: 'none', color: '#ffffff', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', fontWeight: '900', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}><Save size={14}/> GUARDAR</button>
-                            <button onClick={() => setEditandoId(null)} style={{ background: '#ef4444', border: 'none', color: '#ffffff', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', fontWeight: '900', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}><X size={14}/> CANCELAR</button>
+                            <button onClick={(e) => { e.stopPropagation(); setEditandoId(null); }} style={{ background: '#ef4444', border: 'none', color: '#ffffff', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', fontWeight: '900', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}><X size={14}/> CANCELAR</button>
                           </div>
                         ) : (
-                          <button onClick={() => iniciarEdicion(user)} style={{ background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '8px', color: 'var(--color-tema, #3b82f6)', padding: '6px 12px', cursor: 'pointer', fontWeight: '900', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Edit3 size={14} /> EDITAR</button>
+                          <button onClick={(e) => { e.stopPropagation(); iniciarEdicion(user); }} style={{ background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '8px', color: 'var(--color-tema, #3b82f6)', padding: '6px 12px', cursor: 'pointer', fontWeight: '900', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Edit3 size={14} /> EDITAR</button>
                         )}
                       </td>
                     </tr>
