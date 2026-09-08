@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../services/supabaseClient';
-import { Briefcase, Key, UserCheck, UserX, MapPin, Edit3, Save, X, Filter, ChevronDown, ChevronRight, Phone, Mail, Calendar } from 'lucide-react';
+import { Briefcase, Key, UserCheck, UserX, MapPin, Edit3, Save, X, Filter, ChevronDown, ChevronRight, Phone, Mail } from 'lucide-react';
 
 const estandarizar = (txt) => txt.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
@@ -131,15 +131,16 @@ export default function VisorDirectorio({
   };
 
   return (
-    <>
+    <div style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
       <style>{`
-        /* TABS RESPONSIVAS */
+        /* TABS RESPONSIVAS CON SCROLL SUAVE */
         .tabs-bar {
           display: flex;
           gap: 8px;
           overflow-x: auto;
           padding-bottom: 6px;
           margin-bottom: 15px;
+          -webkit-overflow-scrolling: touch;
         }
 
         .tab-item {
@@ -152,18 +153,19 @@ export default function VisorDirectorio({
           white-space: nowrap;
           background: #fff;
           color: #64748b;
+          flex-shrink: 0;
         }
 
         .tab-item.active {
-          background: var(--color-tema);
+          background: var(--color-tema, #0f172a);
           color: #fff;
-          border-color: var(--color-tema);
-          box-shadow: 0 4px 10px color-mix(in srgb, var(--color-tema) 30%, transparent);
+          border-color: var(--color-tema, #0f172a);
+          box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
 
-        /* ACORDEÓN */
+        /* ACORDEÓN ÁRBOL */
         .depto-bar {
-          padding: 14px 16px;
+          padding: 12px 14px;
           background: #fff;
           border: 1px solid #e2e8f0;
           border-radius: 12px;
@@ -175,18 +177,17 @@ export default function VisorDirectorio({
         }
 
         .depto-body {
-          padding: 12px;
-          border-left: 3px solid var(--color-tema);
+          padding: 10px 8px;
+          border-left: 3px solid var(--color-tema, #0f172a);
           background: rgba(255,255,255,0.5);
           margin-bottom: 15px;
           border-radius: 0 10px 10px 12px;
         }
 
-        /* GRID RESPONSIVO REAL */
         .cards-grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: 12px;
+          gap: 10px;
         }
 
         @media (min-width: 600px) {
@@ -197,14 +198,15 @@ export default function VisorDirectorio({
           background: #fff;
           border: 1px solid #e2e8f0;
           border-radius: 12px;
-          padding: 14px;
+          padding: 12px;
           display: flex;
           flex-direction: column;
           gap: 8px;
           box-sizing: border-box;
+          word-break: break-word;
         }
 
-        /* DATAGRID / TABLA RESPONSIVA MUTANTE */
+        /* FILTROS DATAGRID */
         .grid-filters {
           display: flex;
           gap: 8px;
@@ -223,16 +225,16 @@ export default function VisorDirectorio({
           font-size: 11px;
           font-weight: 600;
           outline: none;
-          flex: 1;
-          min-width: 140px;
+          flex: 1 1 140px;
+          box-sizing: border-box;
         }
 
         .table-box {
           width: 100%;
-          overflow-x: auto;
           background: #fff;
           border-radius: 0 0 12px 12px;
           border: 1px solid #e2e8f0;
+          box-sizing: border-box;
         }
 
         .responsive-table {
@@ -259,56 +261,65 @@ export default function VisorDirectorio({
 
         .edit-input {
           width: 100%;
-          padding: 6px;
-          border: 1px solid var(--color-tema);
+          padding: 8px;
+          border: 1px solid var(--color-tema, #0f172a);
           border-radius: 6px;
-          font-size: 11px;
+          font-size: 12px;
           font-weight: 600;
           outline: none;
           box-sizing: border-box;
+          background: #fff;
         }
 
-        /* TRANSFORMACIÓN A CARDS EN CELULARES */
+        /* TRANSFORMACIÓN LIMPIA A TARJETAS EN CELULARES */
         @media (max-width: 768px) {
           .responsive-table thead { display: none; }
-          .responsive-table, .responsive-table tbody, .responsive-table tr, .responsive-table td { 
+          
+          .responsive-table, 
+          .responsive-table tbody, 
+          .responsive-table tr, 
+          .responsive-table td { 
             display: block; 
             width: 100%; 
             box-sizing: border-box; 
           }
+
           .responsive-table tr { 
             margin-bottom: 12px; 
-            border: 1px solid var(--color-tema); 
+            border: 1px solid #e2e8f0; 
+            border-left: 4px solid var(--color-tema, #0f172a);
             border-radius: 12px; 
-            overflow: hidden; 
             background: #fff; 
-            padding: 8px;
+            padding: 8px 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
           }
+
           .responsive-table td { 
-            text-align: right; 
-            padding-left: 45%; 
+            text-align: left; 
+            padding: 22px 6px 6px 6px; 
             position: relative; 
-            border-bottom: 1px solid #f1f5f9; 
-            min-height: 36px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: flex-end; 
+            border-bottom: 1px dashed #f1f5f9; 
+            min-height: 48px;
           }
+
           .responsive-table td::before { 
             content: attr(data-label); 
             position: absolute; 
-            left: 10px; 
-            width: 40%; 
-            text-align: left; 
+            top: 5px; 
+            left: 6px; 
             font-weight: 800; 
             color: #64748b; 
-            font-size: 10px; 
+            font-size: 9px; 
             text-transform: uppercase; 
+            letter-spacing: 0.5px;
           }
+
           .responsive-table td:last-child { 
-            justify-content: center; 
-            padding-left: 10px; 
-            background: #f8fafc; 
+            border-bottom: none;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-top: 6px;
+            padding: 8px;
           }
         }
       `}</style>
@@ -337,20 +348,20 @@ export default function VisorDirectorio({
               <div key={depto}>
                 <div className="depto-bar" onClick={() => toggleDepto(depto)}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Briefcase size={18} color={estaAbierto ? 'var(--color-tema)' : '#64748b'} />
-                    <span style={{ fontSize: '14px', fontWeight: '900', color: estaAbierto ? 'var(--color-tema)' : '#1e293b' }}>{depto}</span>
+                    <Briefcase size={18} color={estaAbierto ? 'var(--color-tema, #0f172a)' : '#64748b'} />
+                    <span style={{ fontSize: '13px', fontWeight: '900', color: estaAbierto ? 'var(--color-tema, #0f172a)' : '#1e293b' }}>{depto}</span>
                     <span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '8px', fontSize: '10px', fontWeight: '800', color: '#475569' }}>
                       {totalPersonas}
                     </span>
                   </div>
-                  {estaAbierto ? <ChevronDown size={18} color="var(--color-tema)"/> : <ChevronRight size={18} color="#94a3b8"/>}
+                  {estaAbierto ? <ChevronDown size={18} color="var(--color-tema, #0f172a)"/> : <ChevronRight size={18} color="#94a3b8"/>}
                 </div>
 
                 {estaAbierto && (
                   <div className="depto-body">
                     {Object.keys(arbol[depto]).sort().map(area => (
                       <div key={area} style={{ marginBottom: '15px' }}>
-                        <div style={{ fontSize: '12px', fontWeight: '800', color: '#475569', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <div style={{ fontSize: '11px', fontWeight: '800', color: '#475569', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <MapPin size={13} color="#64748b"/> {area} ({arbol[depto][area].length})
                         </div>
 
@@ -363,7 +374,7 @@ export default function VisorDirectorio({
                                   <img 
                                     src={user.foto_url || `https://ui-avatars.com/api/?name=${user.nombre_completo}&background=f1f5f9&color=000`} 
                                     alt="Foto" 
-                                    style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }}
+                                    style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
                                   />
                                   <div style={{ display: 'flex', gap: '4px' }}>
                                     <button onClick={() => onRestablecerPin(user.id, user.nombre_completo)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '6px', padding: '5px', cursor: 'pointer' }}><Key size={13} color="#64748b"/></button>
@@ -375,12 +386,12 @@ export default function VisorDirectorio({
 
                                 <div>
                                   <div style={{ fontSize: '13px', fontWeight: '800', color: '#1e293b' }}>{user.nombre_completo}</div>
-                                  <div style={{ fontSize: '10px', color: 'var(--color-tema)', fontWeight: '800' }}>@{user.usuario_login} • {user.numero_empleado}</div>
+                                  <div style={{ fontSize: '10px', color: 'var(--color-tema, #0f172a)', fontWeight: '800' }}>@{user.usuario_login} • {user.numero_empleado}</div>
                                   
                                   <div style={{ marginTop: '6px', fontSize: '11px', color: '#475569', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                     <div><strong>PUESTO:</strong> {user.puesto?.toUpperCase() || 'NO ASIGNADO'}</div>
                                     {user.celular && <div><Phone size={10} style={{ verticalAlign: 'middle' }}/> {user.celular}</div>}
-                                    {user.correo && <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><Mail size={10} style={{ verticalAlign: 'middle' }}/> {user.correo}</div>}
+                                    {user.correo && <div style={{ wordBreak: 'break-all' }}><Mail size={10} style={{ verticalAlign: 'middle' }}/> {user.correo}</div>}
                                   </div>
 
                                   <span style={{ display: 'inline-block', marginTop: '8px', padding: '3px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '900', background: badge.bg, color: badge.text }}>
@@ -400,7 +411,7 @@ export default function VisorDirectorio({
           })}
         </div>
       ) : (
-        /* DATAGRID / EXCEL RESPONSIVO */
+        /* DATAGRID / TABLA RESPONSIVA */
         <div>
           <div className="grid-filters">
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '800', color: '#475569', fontSize: '11px' }}><Filter size={14} /> FILTROS:</div>
@@ -446,14 +457,14 @@ export default function VisorDirectorio({
 
                       <td data-label="Colaborador">
                         <div style={{ fontWeight: '800', color: '#1e293b' }}>{user.nombre_completo}</div>
-                        <div style={{ fontSize: '10px', color: 'var(--color-tema)', fontWeight: '800' }}>@{user.usuario_login}</div>
+                        <div style={{ fontSize: '10px', color: 'var(--color-tema, #0f172a)', fontWeight: '800' }}>@{user.usuario_login}</div>
                       </td>
 
                       <td data-label="Departamento">
                         {enEdicion ? (
                           <select className="edit-input" value={datosEdit.departamento_id} onChange={handleEditDepto}>
                             {departamentos.map(d => <option key={d.id} value={d.id}>{d.nombre}</option>)}
-                            <option value="NEW" style={{fontWeight: '900', color: 'var(--color-tema)'}}>+ CREAR NUEVO...</option>
+                            <option value="NEW" style={{fontWeight: '900', color: 'var(--color-tema, #0f172a)'}}>+ CREAR NUEVO...</option>
                           </select>
                         ) : user.departamentos?.nombre?.toUpperCase()}
                       </td>
@@ -463,7 +474,7 @@ export default function VisorDirectorio({
                           <select className="edit-input" value={datosEdit.area} onChange={handleEditArea}>
                             {!areas.includes(datosEdit.area) && datosEdit.area !== '' && <option value={datosEdit.area}>{datosEdit.area}</option>}
                             {areas.map(a => <option key={a} value={a}>{a}</option>)}
-                            <option value="NEW" style={{fontWeight: '900', color: 'var(--color-tema)'}}>+ CREAR NUEVA...</option>
+                            <option value="NEW" style={{fontWeight: '900', color: 'var(--color-tema, #0f172a)'}}>+ CREAR NUEVA...</option>
                           </select>
                         ) : user.area?.toUpperCase()}
                       </td>
@@ -474,7 +485,7 @@ export default function VisorDirectorio({
                             {!puestos.includes(datosEdit.puesto) && datosEdit.puesto !== '' && <option value={datosEdit.puesto}>{datosEdit.puesto}</option>}
                             <option value="">-- SIN PUESTO --</option>
                             {puestos.map(p => <option key={p} value={p}>{p}</option>)}
-                            <option value="NEW" style={{fontWeight: '900', color: 'var(--color-tema)'}}>+ CREAR NUEVO...</option>
+                            <option value="NEW" style={{fontWeight: '900', color: 'var(--color-tema, #0f172a)'}}>+ CREAR NUEVO...</option>
                           </select>
                         ) : user.puesto?.toUpperCase()}
                       </td>
@@ -503,7 +514,7 @@ export default function VisorDirectorio({
 
                       <td data-label="Contacto">
                         {enEdicion ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             <input type="tel" placeholder="Celular" className="edit-input" value={datosEdit.celular} onChange={e => setDatosEdit({...datosEdit, celular: e.target.value})} />
                             <input type="email" placeholder="Correo" className="edit-input" value={datosEdit.correo} onChange={e => setDatosEdit({...datosEdit, correo: e.target.value})} />
                           </div>
@@ -516,12 +527,12 @@ export default function VisorDirectorio({
 
                       <td data-label="Acciones">
                         {enEdicion ? (
-                          <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                            <button disabled={guardando} onClick={() => guardarEdicionRapida(user.id)} style={{ background: '#dcfce7', border: 'none', color: '#22c55e', borderRadius: '6px', padding: '5px', cursor: 'pointer' }}><Save size={15}/></button>
-                            <button onClick={() => setEditandoId(null)} style={{ background: '#fee2e2', border: 'none', color: '#ef4444', borderRadius: '6px', padding: '5px', cursor: 'pointer' }}><X size={15}/></button>
+                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-start' }}>
+                            <button disabled={guardando} onClick={() => guardarEdicionRapida(user.id)} style={{ background: '#dcfce7', border: 'none', color: '#22c55e', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}><Save size={14}/> GUARDAR</button>
+                            <button onClick={() => setEditandoId(null)} style={{ background: '#fee2e2', border: 'none', color: '#ef4444', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}><X size={14}/> CANCELAR</button>
                           </div>
                         ) : (
-                          <button onClick={() => iniciarEdicion(user)} style={{ background: 'none', border: 'none', color: 'var(--color-tema)', padding: '5px', cursor: 'pointer' }}><Edit3 size={16} /></button>
+                          <button onClick={() => iniciarEdicion(user)} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', color: 'var(--color-tema, #0f172a)', padding: '5px 10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Edit3 size={14} /> EDITAR</button>
                         )}
                       </td>
                     </tr>
@@ -532,6 +543,6 @@ export default function VisorDirectorio({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
