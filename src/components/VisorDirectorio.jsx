@@ -3,10 +3,31 @@ import { supabase } from '../services/supabaseClient';
 import { 
   Users, Factory, Building2, HardHat, Briefcase, MapPin, Key, 
   UserCheck, UserX, Edit3, Save, X, Filter, ChevronDown, 
-  ChevronRight, Phone, Mail 
+  ChevronRight, Phone, Mail, Laptop, Truck, Wrench, TrendingUp, 
+  Calculator, Palette, ShoppingCart, ShieldAlert, HeartHandshake, Zap
 } from 'lucide-react';
 
 const estandarizar = (txt) => txt.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+// =========================================================================
+// MOTOR DE ICONOS DINÁMICOS POR DEPARTAMENTO
+// =========================================================================
+const obtenerIconoDepto = (nombre) => {
+  const txt = nombre.toUpperCase();
+  if (txt.includes('SISTEMA') || txt.includes('TI') || txt.includes('TECNOLOGIA')) return Laptop;
+  if (txt.includes('LOGISTICA') || txt.includes('ALMACEN') || txt.includes('EMBARQUE') || txt.includes('CHOFER')) return Truck;
+  if (txt.includes('MANTENIMIENTO') || txt.includes('INGENIERIA') || txt.includes('TALLER')) return Wrench;
+  if (txt.includes('VENTA') || txt.includes('COMERCIAL') || txt.includes('PROYECTO')) return TrendingUp;
+  if (txt.includes('FINANZA') || txt.includes('CONTABILIDAD') || txt.includes('ADMINISTRACION')) return Calculator;
+  if (txt.includes('DISEÑO') || txt.includes('MARKETING') || txt.includes('ARQUITECTURA')) return Palette;
+  if (txt.includes('COMPRA') || txt.includes('ABASTECIMIENTO')) return ShoppingCart;
+  if (txt.includes('SEGURIDAD') || txt.includes('CASETA')) return ShieldAlert;
+  if (txt.includes('RECURSO') || txt.includes('RH') || txt.includes('NOMINA')) return HeartHandshake;
+  if (txt.includes('PRODUCCION') || txt.includes('MANUFACTURA')) return Factory;
+  if (txt.includes('OBRA') || txt.includes('INSTALACION')) return HardHat;
+  if (txt.includes('ELECTRIC') || txt.includes('ELECTROMECANICA')) return Zap;
+  return Briefcase;
+};
 
 export default function VisorDirectorio({ 
   usuarios, vista, onToggleEstado, onRestablecerPin, 
@@ -23,10 +44,10 @@ export default function VisorDirectorio({
 
   if (!usuarios || usuarios.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8', background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(16px)', borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: '#ffffff', background: 'rgba(0, 0, 0, 0.45)', backdropFilter: 'blur(12px)', borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
         <Users size={48} style={{ opacity: 0.4, marginBottom: '10px' }} />
-        <div style={{ fontWeight: '800', fontSize: '16px', color: '#ffffff' }}>Sin colaboradores registrados</div>
-        <p style={{ fontSize: '13px', margin: '4px 0 0 0' }}>Agrega personal o ajusta los filtros de búsqueda.</p>
+        <div style={{ fontWeight: '800', fontSize: '16px' }}>Sin colaboradores registrados</div>
+        <p style={{ fontSize: '13px', margin: '4px 0 0 0', opacity: 0.7 }}>Agrega personal o ajusta los filtros de búsqueda.</p>
       </div>
     );
   }
@@ -140,7 +161,6 @@ export default function VisorDirectorio({
     }
   };
 
-  // Badges luminosos optimizados para Dark Mode
   const badgeColors = {
     gerente: { bg: 'rgba(239, 68, 68, 0.2)', border: 'rgba(239, 68, 68, 0.5)', text: '#fca5a5', label: 'GERENTE' },
     jefe_area: { bg: 'rgba(245, 158, 11, 0.2)', border: 'rgba(245, 158, 11, 0.5)', text: '#fcd34d', label: 'JEFE DE ÁREA' },
@@ -149,107 +169,48 @@ export default function VisorDirectorio({
     empleado: { bg: 'rgba(34, 197, 94, 0.2)', border: 'rgba(34, 197, 94, 0.5)', text: '#86efac', label: 'EMPLEADO' }
   };
 
-  const categoriasHeader = [
-    { id: 'TODOS', label: 'TODOS', Icono: Users, count: conteoTipos.TODOS },
-    { id: 'PRODUCCION', label: 'PRODUCCIÓN', Icono: Factory, count: conteoTipos.PRODUCCION },
-    { id: 'ADMINISTRATIVO', label: 'ADMINISTRATIVO', Icono: Building2, count: conteoTipos.ADMINISTRATIVO },
-    { id: 'OBRA', label: 'OBRA', Icono: HardHat, count: conteoTipos.OBRA }
-  ];
-
   return (
     <div style={{ width: '100%', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
       <style>{`
-      /* TARJETAS SUPERIORES HERO - CRISTAL PURO */
-        .hero-categories-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 10px;
-          margin-bottom: 20px;
-        }
-
-        @media (min-width: 768px) {
-          .hero-categories-grid {
-            grid-template-columns: repeat(4, 1fr);
-            gap: 14px;
-          }
-        }
-
-        .cat-card-dark {
-          background: rgba(255, 255, 255, 0.08) !important;
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
+        /* =========================================
+           FILTRO DISCRETO EN LA ESQUINA (GLASS PILL)
+           ========================================= */
+        .filter-pill-discrete {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(0, 0, 0, 0.45) !important;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
           border: 1px solid rgba(255, 255, 255, 0.18);
-          border-radius: 16px;
-          padding: 14px 16px;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          cursor: pointer;
-          transition: all 0.25s ease;
-          user-select: none;
-          color: #ffffff;
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .cat-card-dark:hover {
-          transform: translateY(-2px);
-          background: rgba(255, 255, 255, 0.18) !important;
-          border-color: var(--color-tema, #3b82f6);
-        }
-
-        .cat-card-dark.active {
-          background: var(--color-tema, #3b82f6) !important;
-          border-color: var(--color-tema, #3b82f6);
-          color: #ffffff;
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-        }
-
-        .cat-icon-wrapper-dark {
-          width: 42px;
-          height: 42px;
-          border-radius: 12px;
-          background: rgba(255, 255, 255, 0.15);
-          color: #ffffff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-
-        .cat-card-dark.active .cat-icon-wrapper-dark {
-          background: rgba(255, 255, 255, 0.25);
-          color: #ffffff;
-        }
-
-        .cat-info {
-          display: flex;
-          flex-direction: column;
-          min-width: 0;
-        }
-
-        .cat-label {
-          font-size: 11px;
-          font-weight: 900;
-          letter-spacing: 0.8px;
-          text-transform: uppercase;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .cat-count {
-          font-size: 18px;
-          font-weight: 900;
-          line-height: 1.1;
-        }
-
-        /* ÁRBOL DEPARTAMENTAL - CRISTAL PURO */
-        .arbol-depto-node-dark {
-          background: rgba(0, 0, 0, 0.2) !important;
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.15);
           border-radius: 20px;
+          padding: 6px 14px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        .tipo-select-discrete {
+          background: transparent !important;
+          border: none !important;
+          color: #ffffff !important;
+          font-size: 11px !important;
+          font-weight: 800 !important;
+          outline: none !important;
+          cursor: pointer;
+          letter-spacing: 0.5px;
+        }
+
+        .tipo-select-discrete option {
+          background: #090d16 !important;
+          color: #ffffff !important;
+        }
+
+        /* ÁRBOL DEPARTAMENTAL - CRISTAL AHUMADO */
+        .arbol-depto-node-dark {
+          background: rgba(0, 0, 0, 0.45) !important;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 16px;
           margin-bottom: 16px;
           overflow: hidden;
           box-shadow: 0 8px 24px rgba(0,0,0,0.3);
@@ -257,17 +218,17 @@ export default function VisorDirectorio({
 
         .arbol-depto-header-dark {
           padding: 16px 18px;
-          background: rgba(255, 255, 255, 0.05) !important;
+          background: rgba(0, 0, 0, 0.25) !important;
           display: flex;
           justify-content: space-between;
           align-items: center;
           cursor: pointer;
-          border-left: 5px solid var(--color-tema, #3b82f6);
+          border-left: 4px solid var(--color-tema, #3b82f6);
           transition: background 0.2s;
         }
 
         .arbol-depto-header-dark:hover {
-          background: rgba(255, 255, 255, 0.12) !important;
+          background: rgba(255, 255, 255, 0.05) !important;
         }
 
         .arbol-branch-container-dark {
@@ -289,7 +250,7 @@ export default function VisorDirectorio({
           top: 12px;
           bottom: 0;
           width: 2px;
-          background: rgba(255, 255, 255, 0.25);
+          background: rgba(255, 255, 255, 0.2);
         }
 
         .arbol-area-title-dark {
@@ -312,7 +273,7 @@ export default function VisorDirectorio({
           top: 50%;
           width: 10px;
           height: 2px;
-          background: rgba(255, 255, 255, 0.25);
+          background: rgba(255, 255, 255, 0.2);
         }
 
         .cards-grid {
@@ -325,26 +286,22 @@ export default function VisorDirectorio({
           .cards-grid { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
         }
 
-        /* TARJETAS DE COLABORADOR - CRISTAL PURO */
+        /* TARJETAS DE COLABORADOR - CRISTAL AHUMADO */
         .user-card-pro-dark {
-          background: rgba(255, 255, 255, 0.08) !important;
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.18);
-          border-radius: 16px;
+          background: rgba(0, 0, 0, 0.25) !important;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 14px;
           padding: 14px;
           display: flex;
           flex-direction: column;
           gap: 10px;
           box-sizing: border-box;
           transition: all 0.2s ease;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.2);
         }
 
         .user-card-pro-dark:hover {
-          background: rgba(255, 255, 255, 0.15) !important;
+          background: rgba(255, 255, 255, 0.08) !important;
           border-color: var(--color-tema, #3b82f6);
-          box-shadow: 0 8px 24px rgba(0,0,0,0.3);
           transform: translateY(-2px);
         }
 
@@ -356,16 +313,15 @@ export default function VisorDirectorio({
           cursor: pointer;
           border: 2px solid var(--color-tema, #3b82f6);
           box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-          image-rendering: -webkit-optimize-contrast;
         }
 
-        /* DATAGRID / EXCEL EN CRISTAL PURO */
+        /* DATAGRID / EXCEL EN CRISTAL AHUMADO */
         .grid-filters-dark {
           display: flex;
           gap: 10px;
-          background: rgba(0, 0, 0, 0.2) !important;
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
+          background: rgba(0, 0, 0, 0.45) !important;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
           padding: 14px 16px;
           border-radius: 16px 16px 0 0;
           border: 1px solid rgba(255, 255, 255, 0.15);
@@ -382,7 +338,7 @@ export default function VisorDirectorio({
           font-weight: 700;
           outline: none;
           flex: 1 1 160px;
-          background: rgba(255, 255, 255, 0.1) !important;
+          background: rgba(0, 0, 0, 0.35) !important;
           box-sizing: border-box;
           color: #ffffff;
         }
@@ -394,9 +350,9 @@ export default function VisorDirectorio({
 
         .table-box-dark {
           width: 100%;
-          background: rgba(0, 0, 0, 0.2) !important;
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
+          background: rgba(0, 0, 0, 0.45) !important;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
           border-radius: 0 0 16px 16px;
           border: 1px solid rgba(255, 255, 255, 0.15);
           box-sizing: border-box;
@@ -411,7 +367,7 @@ export default function VisorDirectorio({
         }
 
         .responsive-table th {
-          background: rgba(255, 255, 255, 0.1) !important;
+          background: rgba(0, 0, 0, 0.25) !important;
           padding: 12px 14px;
           font-weight: 900;
           color: #ffffff;
@@ -437,11 +393,11 @@ export default function VisorDirectorio({
           font-weight: 700;
           outline: none;
           box-sizing: border-box;
-          background: rgba(0, 0, 0, 0.4) !important;
+          background: rgba(0, 0, 0, 0.6) !important;
           color: #ffffff;
         }
 
-        /* CELULARES - CRISTAL PURO */
+        /* CELULARES - CRISTAL AHUMADO */
         @media (max-width: 768px) {
           .responsive-table thead { display: none; }
           
@@ -457,10 +413,10 @@ export default function VisorDirectorio({
           .responsive-table tr { 
             margin: 12px; 
             width: calc(100% - 24px);
-            border: 1px solid rgba(255, 255, 255, 0.18); 
+            border: 1px solid rgba(255, 255, 255, 0.15); 
             border-left: 5px solid var(--color-tema, #3b82f6);
             border-radius: 16px; 
-            background: rgba(255, 255, 255, 0.08) !important; 
+            background: rgba(0, 0, 0, 0.45) !important; 
             backdrop-filter: blur(12px);
             padding: 12px;
             box-shadow: 0 6px 18px rgba(0,0,0,0.3);
@@ -495,54 +451,57 @@ export default function VisorDirectorio({
         }
       `}</style>
 
-      {/* CLASIFICADOR HERO SUPERIOR */}
-      <div className="hero-categories-grid">
-        {categoriasHeader.map(({ id, label, Icono, count }) => {
-          const esActivo = tipoActivo === id;
-          return (
-            <div 
-              key={id} 
-              className={`cat-card-dark ${esActivo ? 'active' : ''}`}
-              onClick={() => setTipoActivo(id)}
-            >
-              <div className="cat-icon-wrapper-dark">
-                <Icono size={22} />
-              </div>
-              <div className="cat-info">
-                <span className="cat-label">{label}</span>
-                <span className="cat-count">{count}</span>
-              </div>
-            </div>
-          );
-        })}
+      {/* =========================================
+          CONTROL DISCRETO EN LA ESQUINA
+          ========================================= */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '15px' }}>
+        <div className="filter-pill-discrete">
+          <Filter size={14} color="var(--color-tema, #3b82f6)" />
+          <span style={{ fontSize: '11px', fontWeight: '800', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase' }}>Filtro:</span>
+          <select 
+            className="tipo-select-discrete" 
+            value={tipoActivo} 
+            onChange={e => setTipoActivo(e.target.value)}
+          >
+            <option value="TODOS">TODOS ({conteoTipos.TODOS})</option>
+            <option value="PRODUCCION">PRODUCCIÓN ({conteoTipos.PRODUCCION})</option>
+            <option value="ADMINISTRATIVO">ADMINISTRATIVO ({conteoTipos.ADMINISTRATIVO})</option>
+            <option value="OBRA">OBRA ({conteoTipos.OBRA})</option>
+          </select>
+        </div>
       </div>
 
       {vista === 'arbol' ? (
-        /* ÁRBOL ORGANIZACIONAL EN CRISTAL OSCURO */
+        /* ÁRBOL ORGANIZACIONAL EN CRISTAL AHUMADO */
         <div>
           {Object.keys(arbol).sort().map(depto => {
             const estaAbierto = deptosAbiertos[depto];
             const totalPersonas = Object.values(arbol[depto]).flat().length;
             
+            // ASIGNACIÓN DINÁMICA DE ICONO SEGÚN EL NOMBRE DEL DEPARTAMENTO
+            const IconoDepto = obtenerIconoDepto(depto);
+            
             return (
               <div key={depto} className="arbol-depto-node-dark">
                 <div className="arbol-depto-header-dark" onClick={() => toggleDepto(depto)}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Briefcase size={20} color={estaAbierto ? 'var(--color-tema, #3b82f6)' : '#94a3b8'} />
+                    
+                    {/* ICONO DEL DEPARTAMENTO */}
+                    <div style={{ background: estaAbierto ? 'var(--color-tema, #3b82f6)' : 'rgba(255,255,255,0.1)', padding: '8px', borderRadius: '10px', display: 'flex' }}>
+                      <IconoDepto size={18} color="#ffffff" />
+                    </div>
+
                     <div>
                       <div style={{ fontSize: '15px', fontWeight: '900', color: '#ffffff' }}>
                         {depto}
                       </div>
-                      <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '700' }}>
+                      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', fontWeight: '700' }}>
                         Macro-Departamento • {totalPersonas} {totalPersonas === 1 ? 'Colaborador' : 'Colaboradores'}
                       </div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ background: 'var(--color-tema, #3b82f6)', color: '#ffffff', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: '900' }}>
-                      {totalPersonas}
-                    </span>
-                    {estaAbierto ? <ChevronDown size={20} color="var(--color-tema, #3b82f6)"/> : <ChevronRight size={20} color="#94a3b8"/>}
+                    {estaAbierto ? <ChevronDown size={20} color="var(--color-tema, #3b82f6)"/> : <ChevronRight size={20} color="rgba(255,255,255,0.5)"/>}
                   </div>
                 </div>
 
@@ -553,7 +512,7 @@ export default function VisorDirectorio({
                         <div className="arbol-area-title-dark">
                           <MapPin size={14} color="var(--color-tema, #3b82f6)" />
                           <span>ÁREA FÍSICA: {area}</span>
-                          <span style={{ color: '#94a3b8', fontSize: '11px' }}>({arbol[depto][area].length})</span>
+                          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px' }}>({arbol[depto][area].length})</span>
                         </div>
 
                         <div className="cards-grid">
@@ -587,7 +546,7 @@ export default function VisorDirectorio({
                                     @{user.usuario_login} • EMP-#{user.numero_empleado}
                                   </div>
                                   
-                                  <div style={{ marginTop: '8px', fontSize: '11px', color: '#cbd5e1', display: 'flex', flexDirection: 'column', gap: '3px', background: 'rgba(15, 23, 42, 0.6)', padding: '8px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                  <div style={{ marginTop: '8px', fontSize: '11px', color: '#cbd5e1', display: 'flex', flexDirection: 'column', gap: '3px', background: 'rgba(0, 0, 0, 0.25)', padding: '8px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
                                     <div><strong style={{ color: '#ffffff' }}>PUESTO:</strong> {user.puesto?.toUpperCase() || 'NO ASIGNADO'}</div>
                                     {user.celular && <div><Phone size={11} style={{ verticalAlign: 'middle', marginRight: '4px' }}/>{user.celular}</div>}
                                     {user.correo && <div style={{ wordBreak: 'break-all' }}><Mail size={11} style={{ verticalAlign: 'middle', marginRight: '4px' }}/>{user.correo}</div>}
@@ -597,7 +556,7 @@ export default function VisorDirectorio({
                                     <span style={{ padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '900', background: badge.bg, color: badge.text, border: `1px solid ${badge.border}` }}>
                                       {badge.label}
                                     </span>
-                                    <span style={{ fontSize: '10px', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase' }}>
+                                    <span style={{ fontSize: '10px', fontWeight: '800', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase' }}>
                                       {user.tipo_personal}
                                     </span>
                                   </div>
@@ -615,7 +574,7 @@ export default function VisorDirectorio({
           })}
         </div>
       ) : (
-        /* DATAGRID / EXCEL EN CRISTAL OSCURO */
+        /* DATAGRID / EXCEL EN CRISTAL AHUMADO */
         <div>
           <div className="grid-filters-dark">
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '900', color: '#ffffff', fontSize: '12px' }}>
@@ -719,7 +678,7 @@ export default function VisorDirectorio({
                             <option value="administrativo">ADMINISTRATIVO</option>
                             <option value="obra">OBRA</option>
                           </select>
-                        ) : <span style={{ fontWeight: '800', color: '#cbd5e1', fontSize: '11px' }}>{user.tipo_personal?.toUpperCase()}</span>}
+                        ) : <span style={{ fontWeight: '800', color: 'rgba(255,255,255,0.7)', fontSize: '11px' }}>{user.tipo_personal?.toUpperCase()}</span>}
                       </td>
 
                       <td data-label="Rol ERP">
@@ -745,7 +704,7 @@ export default function VisorDirectorio({
                             <input type="email" placeholder="Correo" className="edit-input-dark" value={datosEdit.correo} onChange={e => setDatosEdit({...datosEdit, correo: e.target.value})} />
                           </div>
                         ) : (
-                          <div style={{ fontSize: '11px', color: '#cbd5e1' }}>
+                          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)' }}>
                             {user.celular || 'Sin celular'}
                           </div>
                         )}
@@ -814,7 +773,7 @@ export default function VisorDirectorio({
               <div style={{ fontSize: '18px', fontWeight: '900' }}>{fotoZoom.nombre}</div>
               {fotoZoom.puesto && <div style={{ fontSize: '13px', color: '#cbd5e1', marginTop: '2px' }}>{fotoZoom.puesto}</div>}
             </div>
-            <p style={{ color: '#94a3b8', marginTop: '12px', fontSize: '11px', letterSpacing: '1px' }}>
+            <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: '12px', fontSize: '11px', letterSpacing: '1px' }}>
               TOCA EN CUALQUIER PARTE PARA CERRAR
             </p>
           </div>
